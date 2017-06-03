@@ -42,16 +42,16 @@ export default {
     far: 1000,
     aspect: 1,
     posX: 0,
-    posY: 30,
-    posZ: 40
+    posY: -30,
+    posZ: 8
   },
   controls: {
     autoRotate: false,
     autoRotateSpeed: -0.5,
     rotateSpeed: 0.5,
     zoomSpeed: 0.8,
-    minDistance: 200,
-    maxDistance: 600,
+    minDistance: 2,
+    maxDistance: 60,
     minPolarAngle: -Infinity,
     maxPolarAngle: Infinity,
     minAzimuthAngle: -Infinity,

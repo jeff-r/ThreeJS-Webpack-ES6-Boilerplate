@@ -58,11 +58,6 @@ export default class Main {
       this.light.place(lights[i]);
     }
 
-    // Create and place geo in scene
-    this.geometry = new Geometry(this.scene);
-    this.geometry.make('plane')(150, 150, 10, 10);
-    this.geometry.place([0, -20, 0], [Math.PI/2, 0, 0]);
-
     this.stats = new Stats(this.renderer);
     this.stats.initRStatsIfDev();
 
@@ -74,38 +69,68 @@ export default class Main {
     this.render();
   }
 
+  plot(phase) {
+    return function(x,y) {
+      let xRange = 38;
+      let yRange = 38;
+      let scaleZ = 6;
+      let offsetZ = 2;
+
+      let xMin = -xRange/2;
+      let yMin = -xRange/2;
+      let xx = xRange * x + xMin;
+      let yy = yRange * y + yMin;
+      let distance = Math.sqrt(xx*xx+yy*yy);
+      let z = offsetZ + scaleZ*Math.cos(distance+phase)/(distance + 1);
+
+      if ( isNaN(z) )
+        return new THREE.Vector3(0,0,0); // TODO: better fix
+      else
+        return new THREE.Vector3(xx, yy, z);
+    }
+  }
+
   hsl(hue, saturation, lightness) {
     return new THREE.Color("hsl(" + hue + ", " + saturation + "%, " + lightness + "%)")
   }
 
   addScratchObjects() {
-    let ballProperties = {
-      color: this.hsl(0, 50, 80),
-      shininess: 255,
-      specular: this.hsl(60, 20, 10)
-    }
-    let meshMaterial = new THREE.MeshPhongMaterial(ballProperties);
-    let ballGeometry = new THREE.SphereGeometry(14,50,50);
-    var ball = new THREE.Mesh(ballGeometry, meshMaterial);
-    ball.position.x = 0;
-    ball.position.y = 0;
-    ball.position.z = 50;
-    ball.castShadow = true;
-    this.scene.add(ball);
-
-    let boxProperties = {
+    let segments = 200;
+    let plotGeometry = new THREE.ParametricGeometry(this.plot(0.1), segments, segments, true);
+    let plotProperties = {
       color: this.hsl(180,50,80),
-      shininess: 255,
-      specular: 0xff8888
     }
-    let boxMaterial = new THREE.MeshLambertMaterial(boxProperties);
-    let boxGeometry = new THREE.BoxGeometry(10,10,10);
-    var box = new THREE.Mesh(boxGeometry, boxMaterial);
-    box.position.x = 50;
-    box.position.y = 0;
-    box.position.z = 0;
-    box.castShadow = true;
-    this.scene.add(box);
+    let plotMaterial = new THREE.MeshLambertMaterial(plotProperties);
+    let plotMesh = new THREE.Mesh(plotGeometry, plotMaterial);
+    this.scene.add(plotMesh);
+
+    // let ballProperties = {
+    //   color: this.hsl(0, 50, 80),
+    //   shininess: 255,
+    //   specular: this.hsl(60, 20, 10)
+    // }
+    // let ballMaterial = new THREE.MeshPhongMaterial(ballProperties);
+    // let ballGeometry = new THREE.SphereGeometry(14,50,50);
+    // var ball = new THREE.Mesh(ballGeometry, ballMaterial);
+    // ball.position.x = 0;
+    // ball.position.y = 0;
+    // ball.position.z = 50;
+    // ball.castShadow = true;
+    // this.scene.add(ball);
+
+    // let boxProperties = {
+    //   color: this.hsl(180,50,80),
+    //   shininess: 255,
+    //   specular: 0xff8888
+    // }
+    // let boxMaterial = new THREE.MeshLambertMaterial(boxProperties);
+    // let boxGeometry = new THREE.BoxGeometry(10,10,10);
+    // var box = new THREE.Mesh(boxGeometry, boxMaterial);
+    // box.position.x = 50;
+    // box.position.y = 0;
+    // box.position.z = 0;
+    // box.castShadow = true;
+    // this.scene.add(box);
   }
 
   initBaseModelAndTexture() {
@@ -140,11 +165,6 @@ export default class Main {
   finalizeDisplay() {
     // Set up interaction manager with the app now that the model is finished loading
     new Interaction(this.renderer.threeRenderer, this.scene, this.camera.threeCamera, this.controls.threeControls);
-
-    // Add dat.GUI controls if dev
-    if(this.stats.showStats()) {
-      new DatGUI(this, this.model.obj);
-    }
 
     // Everything is now fully loaded
     Config.isLoaded = true;
