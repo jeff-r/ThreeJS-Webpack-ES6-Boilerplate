@@ -12,6 +12,7 @@ export default {
   dpr: 1,
   easing: TWEEN.Easing.Quadratic.InOut,
   duration: 500,
+  showStats: false,
   model: {
     path: './assets/models/Teapot.json',
     scale: 20

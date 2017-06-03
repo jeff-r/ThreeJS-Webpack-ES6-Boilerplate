@@ -66,7 +66,7 @@ export default class Main {
     this.geometry.place([0, -20, 0], [Math.PI/2, 0, 0]);
 
     // Set up rStats if dev environment
-    if(Config.isDev) {
+    if(this.showStats()) {
       bS = new BrowserStats();
       glS = new glStats();
       tS = new threeStats(this.renderer.threeRenderer);
@@ -115,7 +115,7 @@ export default class Main {
         new Interaction(this.renderer.threeRenderer, this.scene, this.camera.threeCamera, this.controls.threeControls);
 
         // Add dat.GUI controls if dev
-        if(Config.isDev) {
+        if(this.showStats()) {
           new DatGUI(this, this.model.obj);
         }
 
@@ -129,9 +129,13 @@ export default class Main {
     this.render();
   }
 
+  showStats() {
+    return Config.isDev && Config.showStats;
+  }
+
   render() {
     // Render rStats if Dev
-    if(Config.isDev) {
+    if(this.showStats()) {
       rS('frame').start();
       glS.start();
 
@@ -145,7 +149,7 @@ export default class Main {
     this.renderer.render(this.scene, this.camera.threeCamera);
 
     // rStats has finished determining render call now
-    if(Config.isDev) {
+    if(this.showStats()) {
       rS('render').end(); // render finished
       rS('frame').end(); // frame finished
 
