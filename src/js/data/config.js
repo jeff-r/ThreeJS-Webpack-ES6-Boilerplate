@@ -5,7 +5,7 @@ export default {
   isDev: false,
   isLoaded: false,
   isTweening: false,
-  isRotating: true,
+  isRotating: false,
   isMouseMoving: false,
   isMouseOver: false,
   maxAnisotropy: 1,
@@ -46,7 +46,7 @@ export default {
     posZ: 40
   },
   controls: {
-    autoRotate: true,
+    autoRotate: false,
     autoRotateSpeed: -0.5,
     rotateSpeed: 0.5,
     zoomSpeed: 0.8,
