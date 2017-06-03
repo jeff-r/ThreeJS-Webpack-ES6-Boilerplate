@@ -22,11 +22,9 @@ import DatGUI from './managers/datGUI';
 
 // data
 import Config from './../data/config';
+
+import Stats from './helpers/stats';
 // -- End of imports
-
-// Local vars for rStats
-let rS, bS, glS, tS;
-
 
 // This class instantiates and ties all of the components together, starts the loading process and renders the main loop
 export default class Main {
@@ -65,7 +63,8 @@ export default class Main {
     this.geometry.make('plane')(150, 150, 10, 10);
     this.geometry.place([0, -20, 0], [Math.PI/2, 0, 0]);
 
-    this.initRStatsIfDev();
+    this.stats = new Stats(this.renderer);
+    this.stats.initRStatsIfDev();
 
     // Instantiate texture class
     this.texture = new Texture();
@@ -102,7 +101,7 @@ export default class Main {
     new Interaction(this.renderer.threeRenderer, this.scene, this.camera.threeCamera, this.controls.threeControls);
 
     // Add dat.GUI controls if dev
-    if(this.showStats()) {
+    if(this.stats.showStats()) {
       new DatGUI(this, this.model.obj);
     }
 
@@ -111,70 +110,13 @@ export default class Main {
     this.container.querySelector('#loading').style.display = 'none';
   }
 
-  initRStatsIfDev() {
-    if (this.showStats()) {
-      bS = new BrowserStats();
-      glS = new glStats();
-      tS = new threeStats(this.renderer.threeRenderer);
-
-      rS = new rStats({
-        CSSPath: './assets/css/',
-        userTimingAPI: true,
-        values: {
-          frame: { caption: 'Total frame time (ms)', over: 16, average: true, avgMs: 100 },
-          fps: { caption: 'Framerate (FPS)', below: 30 },
-          calls: { caption: 'Calls (three.js)', over: 3000 },
-          raf: { caption: 'Time since last rAF (ms)', average: true, avgMs: 100 },
-          rstats: { caption: 'rStats update (ms)', average: true, avgMs: 100 },
-          texture: { caption: 'GenTex', average: true, avgMs: 100 }
-        },
-        groups: [
-          { caption: 'Framerate', values: [ 'fps', 'raf' ] },
-          { caption: 'Frame Budget', values: [ 'frame', 'texture', 'setup', 'render' ] }
-        ],
-        fractions: [
-          { base: 'frame', steps: [ 'texture', 'setup', 'render' ] }
-        ],
-        plugins: [bS, tS, glS]
-      });
-    }
-  }
-
-  showStats() {
-    return Config.isDev && Config.showStats;
-  }
-
-  renderStatsBegin() {
-    if(this.showStats()) {
-      rS('frame').start();
-      glS.start();
-
-      rS('rAF').tick();
-      rS('FPS').frame();
-
-      rS('render').start();
-    }
-  }
-
-  renderStatsFinish() {
-    if(this.showStats()) {
-      rS('render').end(); // render finished
-      rS('frame').end(); // frame finished
-
-      // Local rStats update
-      rS('rStats').start();
-      rS().update();
-      rS('rStats').end();
-    }
-  }
-
   render() {
-    this.renderStatsBegin();
+    this.stats.renderStatsBegin();
 
     // Call render function and pass in created scene and camera
     this.renderer.render(this.scene, this.camera.threeCamera);
 
-    this.renderStatsFinish();
+    this.stats.renderStatsEnd();
 
     // Delta time is sometimes needed for certain updates
     //const delta = this.clock.getDelta();
