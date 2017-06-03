@@ -65,8 +65,54 @@ export default class Main {
     this.geometry.make('plane')(150, 150, 10, 10);
     this.geometry.place([0, -20, 0], [Math.PI/2, 0, 0]);
 
-    // Set up rStats if dev environment
+    this.initRStatsIfDev();
+
+    // Instantiate texture class
+    this.texture = new Texture();
+
+    // Start loading the textures and then go on to load the model after the texture Promises have resolved
+    this.texture.load().then(() => {
+      this.initModel();
+    });
+
+    // Start render which does not wait for model fully loaded
+    this.render();
+  }
+
+  initModel() {
+    this.manager = new THREE.LoadingManager();
+
+    // Textures loaded, load model
+    this.model = new Model(this.scene, this.manager, this.texture.textures);
+    this.model.load();
+
+    // onProgress callback
+    this.manager.onProgress = (item, loaded, total) => {
+      console.log(`${item}: ${loaded} ${total}`);
+    };
+
+    // All loaders done now
+    this.manager.onLoad = () => {
+      this.finalizeDisplay();
+    };
+  }
+
+  finalizeDisplay() {
+    // Set up interaction manager with the app now that the model is finished loading
+    new Interaction(this.renderer.threeRenderer, this.scene, this.camera.threeCamera, this.controls.threeControls);
+
+    // Add dat.GUI controls if dev
     if(this.showStats()) {
+      new DatGUI(this, this.model.obj);
+    }
+
+    // Everything is now fully loaded
+    Config.isLoaded = true;
+    this.container.querySelector('#loading').style.display = 'none';
+  }
+
+  initRStatsIfDev() {
+    if (this.showStats()) {
       bS = new BrowserStats();
       glS = new glStats();
       tS = new threeStats(this.renderer.threeRenderer);
@@ -92,49 +138,13 @@ export default class Main {
         plugins: [bS, tS, glS]
       });
     }
-
-    // Instantiate texture class
-    this.texture = new Texture();
-
-    // Start loading the textures and then go on to load the model after the texture Promises have resolved
-    this.texture.load().then(() => {
-      this.manager = new THREE.LoadingManager();
-
-      // Textures loaded, load model
-      this.model = new Model(this.scene, this.manager, this.texture.textures);
-      this.model.load();
-
-      // onProgress callback
-      this.manager.onProgress = (item, loaded, total) => {
-        console.log(`${item}: ${loaded} ${total}`);
-      };
-
-      // All loaders done now
-      this.manager.onLoad = () => {
-        // Set up interaction manager with the app now that the model is finished loading
-        new Interaction(this.renderer.threeRenderer, this.scene, this.camera.threeCamera, this.controls.threeControls);
-
-        // Add dat.GUI controls if dev
-        if(this.showStats()) {
-          new DatGUI(this, this.model.obj);
-        }
-
-        // Everything is now fully loaded
-        Config.isLoaded = true;
-        this.container.querySelector('#loading').style.display = 'none';
-      };
-    });
-
-    // Start render which does not wait for model fully loaded
-    this.render();
   }
 
   showStats() {
     return Config.isDev && Config.showStats;
   }
 
-  render() {
-    // Render rStats if Dev
+  renderStatsBegin() {
     if(this.showStats()) {
       rS('frame').start();
       glS.start();
@@ -144,11 +154,9 @@ export default class Main {
 
       rS('render').start();
     }
+  }
 
-    // Call render function and pass in created scene and camera
-    this.renderer.render(this.scene, this.camera.threeCamera);
-
-    // rStats has finished determining render call now
+  renderStatsFinish() {
     if(this.showStats()) {
       rS('render').end(); // render finished
       rS('frame').end(); // frame finished
@@ -158,6 +166,15 @@ export default class Main {
       rS().update();
       rS('rStats').end();
     }
+  }
+
+  render() {
+    this.renderStatsBegin();
+
+    // Call render function and pass in created scene and camera
+    this.renderer.render(this.scene, this.camera.threeCamera);
+
+    this.renderStatsFinish();
 
     // Delta time is sometimes needed for certain updates
     //const delta = this.clock.getDelta();
@@ -166,7 +183,6 @@ export default class Main {
     TWEEN.update();
     this.controls.threeControls.update();
 
-    // RAF
     requestAnimationFrame(this.render.bind(this)); // Bind the main class instead of window object
   }
 }
