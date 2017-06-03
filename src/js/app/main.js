@@ -66,6 +66,49 @@ export default class Main {
     this.stats = new Stats(this.renderer);
     this.stats.initRStatsIfDev();
 
+    // this.initBaseModelAndTexture();
+    this.finalizeDisplay();
+
+    this.addScratchObjects();
+    // Start render which does not wait for model fully loaded
+    this.render();
+  }
+
+  hsl(hue, saturation, lightness) {
+    return new THREE.Color("hsl(" + hue + ", " + saturation + "%, " + lightness + "%)")
+  }
+
+  addScratchObjects() {
+    let ballProperties = {
+      color: this.hsl(0, 50, 80),
+      shininess: 255,
+      specular: this.hsl(60, 20, 10)
+    }
+    let meshMaterial = new THREE.MeshPhongMaterial(ballProperties);
+    let ballGeometry = new THREE.SphereGeometry(14,50,50);
+    var ball = new THREE.Mesh(ballGeometry, meshMaterial);
+    ball.position.x = 0;
+    ball.position.y = 0;
+    ball.position.z = 50;
+    ball.castShadow = true;
+    this.scene.add(ball);
+
+    let boxProperties = {
+      color: this.hsl(180,50,80),
+      shininess: 255,
+      specular: 0xff8888
+    }
+    let boxMaterial = new THREE.MeshLambertMaterial(boxProperties);
+    let boxGeometry = new THREE.BoxGeometry(10,10,10);
+    var box = new THREE.Mesh(boxGeometry, boxMaterial);
+    box.position.x = 50;
+    box.position.y = 0;
+    box.position.z = 0;
+    box.castShadow = true;
+    this.scene.add(box);
+  }
+
+  initBaseModelAndTexture() {
     // Instantiate texture class
     this.texture = new Texture();
 
@@ -74,8 +117,6 @@ export default class Main {
       this.initModel();
     });
 
-    // Start render which does not wait for model fully loaded
-    this.render();
   }
 
   initModel() {
