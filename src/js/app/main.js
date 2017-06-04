@@ -62,11 +62,11 @@ export default class Main {
     this.stats = new Stats(this.renderer);
     this.stats.initRStatsIfDev();
 
-    // this.initBaseModelAndTexture();
     this.finalizeDisplay();
 
-    this.plot = new Plot(1.2);
+    this.plot = new Plot(80, 1.2);
     this.addScratchObjects();
+    this.plot.updateWaves(this.plotGeometry.vertices);
     // Start render which does not wait for model fully loaded
     this.render();
   }
@@ -76,72 +76,16 @@ export default class Main {
   }
 
   addScratchObjects() {
-    let segments = 50;
+    let segments = this.plot.segments();
     console.log("Adding plot.waves");
-    let plotGeometry = new THREE.ParametricGeometry(this.plot.waves, segments, segments, true);
+    this.plotGeometry = new THREE.ParametricGeometry(this.plot.waves, segments, segments, true);
+    console.log(this.plotGeometry);
     let plotProperties = {
       color: this.hsl(180,50,80),
     }
     let plotMaterial = new THREE.MeshLambertMaterial(plotProperties);
-    let plotMesh = new THREE.Mesh(plotGeometry, plotMaterial);
+    let plotMesh = new THREE.Mesh(this.plotGeometry, plotMaterial);
     this.scene.add(plotMesh);
-
-    // let ballProperties = {
-    //   color: this.hsl(0, 50, 80),
-    //   shininess: 255,
-    //   specular: this.hsl(60, 20, 10)
-    // }
-    // let ballMaterial = new THREE.MeshPhongMaterial(ballProperties);
-    // let ballGeometry = new THREE.SphereGeometry(14,50,50);
-    // var ball = new THREE.Mesh(ballGeometry, ballMaterial);
-    // ball.position.x = 0;
-    // ball.position.y = 0;
-    // ball.position.z = 50;
-    // ball.castShadow = true;
-    // this.scene.add(ball);
-
-    // let boxProperties = {
-    //   color: this.hsl(180,50,80),
-    //   shininess: 255,
-    //   specular: 0xff8888
-    // }
-    // let boxMaterial = new THREE.MeshLambertMaterial(boxProperties);
-    // let boxGeometry = new THREE.BoxGeometry(10,10,10);
-    // var box = new THREE.Mesh(boxGeometry, boxMaterial);
-    // box.position.x = 50;
-    // box.position.y = 0;
-    // box.position.z = 0;
-    // box.castShadow = true;
-    // this.scene.add(box);
-  }
-
-  initBaseModelAndTexture() {
-    // Instantiate texture class
-    this.texture = new Texture();
-
-    // Start loading the textures and then go on to load the model after the texture Promises have resolved
-    this.texture.load().then(() => {
-      this.initModel();
-    });
-
-  }
-
-  initModel() {
-    this.manager = new THREE.LoadingManager();
-
-    // Textures loaded, load model
-    this.model = new Model(this.scene, this.manager, this.texture.textures);
-    this.model.load();
-
-    // onProgress callback
-    this.manager.onProgress = (item, loaded, total) => {
-      console.log(`${item}: ${loaded} ${total}`);
-    };
-
-    // All loaders done now
-    this.manager.onLoad = () => {
-      this.finalizeDisplay();
-    };
   }
 
   finalizeDisplay() {
@@ -155,6 +99,8 @@ export default class Main {
 
   render() {
     this.stats.renderStatsBegin();
+    this.plot.updateWaves(this.plotGeometry.vertices);
+    this.plotGeometry.verticesNeedUpdate = true;
 
     // Call render function and pass in created scene and camera
     this.renderer.render(this.scene, this.camera.threeCamera);

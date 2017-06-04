@@ -43,7 +43,7 @@ export default {
     aspect: 1,
     posX: 0,
     posY: -30,
-    posZ: 8
+    posZ: 12
   },
   controls: {
     autoRotate: false,
