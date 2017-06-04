@@ -5,3 +5,4 @@ node_modules
 Iconr
 tags
 src/public/assets/js/app.js
+three.min.js

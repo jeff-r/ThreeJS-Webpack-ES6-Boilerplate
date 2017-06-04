@@ -24,6 +24,7 @@ import DatGUI from './managers/datGUI';
 import Config from './../data/config';
 
 import Stats from './helpers/stats';
+import Plot  from './model/plot';
 // -- End of imports
 
 // This class instantiates and ties all of the components together, starts the loading process and renders the main loop
@@ -64,30 +65,10 @@ export default class Main {
     // this.initBaseModelAndTexture();
     this.finalizeDisplay();
 
+    this.plot = new Plot(1.2);
     this.addScratchObjects();
     // Start render which does not wait for model fully loaded
     this.render();
-  }
-
-  plot(phase) {
-    return function(x,y) {
-      let xRange = 38;
-      let yRange = 38;
-      let scaleZ = 6;
-      let offsetZ = 2;
-
-      let xMin = -xRange/2;
-      let yMin = -xRange/2;
-      let xx = xRange * x + xMin;
-      let yy = yRange * y + yMin;
-      let distance = Math.sqrt(xx*xx+yy*yy);
-      let z = offsetZ + scaleZ*Math.cos(distance+phase)/(distance + 1);
-
-      if ( isNaN(z) )
-        return new THREE.Vector3(0,0,0); // TODO: better fix
-      else
-        return new THREE.Vector3(xx, yy, z);
-    }
   }
 
   hsl(hue, saturation, lightness) {
@@ -95,8 +76,9 @@ export default class Main {
   }
 
   addScratchObjects() {
-    let segments = 200;
-    let plotGeometry = new THREE.ParametricGeometry(this.plot(0.1), segments, segments, true);
+    let segments = 50;
+    console.log("Adding plot.waves");
+    let plotGeometry = new THREE.ParametricGeometry(this.plot.waves, segments, segments, true);
     let plotProperties = {
       color: this.hsl(180,50,80),
     }
